@@ -9,13 +9,64 @@
 - Visual Validation: CLOSED
 - Execution: AUTHORIZED WITH HOLD
 
-## Authorized Now
+## Technology Stack
 
-1. Sprint 0 Foundation contracts and tests.
-2. Logical / Mock implementation for IDs marked `CONFIRMED` or `CURRENT` in Sheet 07 and `READY WITH DEPENDENCY` in Sheet 09.
-3. Selective legacy reuse only after `REUSE / MODIFY / NEW / HOLD / CONFLICT` classification.
-4. Source ID + AC/Test trace on every implementation unit.
-5. Application scaffold using the recovered current OC technology baseline.
+- OC Frontend: React 19 + Vite 8 + React Router 8
+- Backend: NestJS 11
+- ORM: Prisma 6.19
+- DB Engine: PostgreSQL
+- Workspace: pnpm / Node 20.19+
+- ODR-01: RESOLVED by current uploaded PayPlay source evidence
+
+## Sprint 0 — COMPLETE WITH HOLD
+
+- Menu Registry contract
+- Permission contract: Menu + Row Scope + Field Visibility + Action Permission
+- Activity Ledger append-only contract
+- Work Projection contract
+- React/Vite application scaffold
+- NestJS application shell
+- Prisma PostgreSQL provider declaration only; no physical model/migration
+- Foundation acceptance cases
+
+## Sprint 1 — CORE LOGICAL/MOCK ACTIVE
+
+### Customer / Work
+- PST-301 Customer360 canonical context
+- PCS-101 TODAY projection
+- Activity Ledger history/trace
+- Source Domain Return boundary
+
+### Sales Core
+- PST-101 신규유입 → PST-102 가망 → PST-103 TM / PST-201 방문영업 → PST-401/402 견적
+- 수동 상태전이 only
+- Quote internal approval excluded
+- Contract handoff only; no new contract meaning
+
+### Service Core
+- PCS-103 A/S Intake
+- What we know / What we tried / What we need + remote impossible reason
+- PCS-102 VS schedule
+- Evidence Gate: 사진 / Serial·Asset / Test Result / 고객 확인
+- Partial Complete / Missing Evidence / Revisit / Verified Complete
+- VS result → Activity Ledger → Customer360 History
+- VS Verified Complete ≠ A/S Case Close
+
+### Operations Core
+- PCS-104 Supply/Shipping Logical Mock; Logen Production Binding HOLD
+- PCS-105 Receivable = Restricted Summary + Queue
+- PCS-106 Inventory = Logical/Mock Only; Physical Schema/Migration HOLD
+
+### Settings Enforcement
+- PSET-103 Canonical ID immutable; displayName/order/visibility only
+- PSET-102 Menu + Row Scope + Field Visibility + Action Permission, Default Deny
+- PSET-105 Audit Before/After + Recovery
+- PSET-106 HOLD
+
+### Front ↔ Mock API
+- Customer360 / TODAY / Service / Sales / Operations / Settings screens now read Nest Mock endpoints
+- API base: `VITE_API_BASE_URL`, fallback localhost:4100
+- API failure keeps Static Contract visible and reports connection failure
 
 ## Still HOLD / Forbidden
 
@@ -30,45 +81,15 @@
 - `PCS-190` Cleaner / Recovery / Format real endpoint
 - `PMG-104` compensation formula
 
-## Technology Stack Gate
+## Current Verification
 
-`ODR-01 = RESOLVED` by current PayPlay source evidence supplied by Owner.
-
-- OC frontend: React 19 + Vite 8 + React Router 8
-- Backend: NestJS 11
-- ORM: Prisma 6.19
-- Database engine: PostgreSQL
-- Workspace: pnpm / Node 20.19+
-
-This resolves framework selection only. It does **not** authorize DB migration, physical IAM, provider credentials, or production binding.
-
-## Sprint 0 — Foundation + Scaffold
-
-- Menu Registry contract
-- Permission evaluation contract: Row Scope / Field Visibility / Action Permission
-- Activity Ledger append-only event contract
-- Work Projection contract for TODAY / queue views
-- Foundation contract test cases
-- React/Vite OC application scaffold
-- NestJS health shell
-- Prisma PostgreSQL provider declaration only; no models/migrations
-
-## Sprint 1 — Core Logical/Mock Active
-
-- `PST-301` Customer360 logical response + Activity Ledger trace
-- `PCS-101` TODAY projection response + Source return contract
-- `PCS-102` VS Evidence / Partial / Revisit / Verified Complete gate
-- `PCS-103` A/S intake → CS→VS handoff → separate Case Close rule
-- `PST-101/102/103/201` Sales views bound to Customer360 Master
-- `PST-401` Quote action boundary, internal approval excluded
-- 12 Core Mock acceptance cases + HOLD regression list
-
-## Current Execution Gate
-
-- Sprint 0: COMPLETE WITH HOLD
-- Sprint 1 Core Logical/Mock: IN PROGRESS
-- DB Migration: NOT AUTHORIZED
-- Provider / Credential / Production Binding: HOLD
-- Physical Shared IAM / Person / Merchant: HOLD
+- Physical Prisma Model: 0
+- DB Migration: 0
+- Provider Binding: 0
+- Production Binding: 0
+- HOLD Violation: 0
+- Foundation Cases: 10
+- Core Cases: 12
+- Sprint 1 Integration Cases: 23
 
 `New Product Meaning Created = 0`
