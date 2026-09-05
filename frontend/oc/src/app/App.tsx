@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { Navigate, NavLink, Route, Routes, useLocation } from 'react-router'
+import { Navigate, NavLink, Route, Routes, useLocation, useNavigate } from 'react-router'
 import { fetchMockResource, mockEndpoints } from '../api/mockApi'
 
 const MENU = [
@@ -26,6 +26,10 @@ type ScreenSpec = {
   returnRule: string
 }
 
+type NavigationState = { returnTo?: string; originLabel?: string }
+
+type MockAction = { label: string; target: string; note: string }
+
 const SCREENS: Record<string, ScreenSpec> = {
   '/home': { id: 'PCI-101', title: '업무 홈', summary: '원본 Transaction을 직접 수정하지 않는 Work Projection.', state: '정상 · 지연 · 보류', cards: [{ label: '오늘 처리', value: '12', note: 'Source Domain으로 Drill-down' }, { label: '보류', value: '3', note: '원인과 원본 업무 링크 유지' }, { label: '방문 예정', value: '5', note: 'VS/TM/방문영업 일정 Projection' }], guard: 'Projection에서 원본 업무 직접 수정 금지', returnRule: 'Source 처리 후 기존 Home/TODAY Context로 복귀' },
   '/today': { id: 'PCS-101', title: 'TODAY', summary: '업무별 Source를 모아 보여주는 실행 Queue.', state: '예정 · 진행 · 보류 · 완료', cards: [{ label: '예정', value: '6', note: 'Source 상세 진입' }, { label: '진행', value: '4', note: 'Source State 기준' }, { label: '완료', value: '2', note: 'VS는 Verified Complete만 반영' }], guard: 'TODAY = Work Projection, Source Truth 아님', returnRule: 'Source 완료/취소 후 Queue Context 유지' },
@@ -51,6 +55,16 @@ const API_BY_PATH: Record<string, string | undefined> = {
   '/settings/menu': mockEndpoints.settings,
 }
 
+const ACTIONS_BY_PATH: Record<string, MockAction[]> = {
+  '/home': [{ label: 'TODAY 열기', target: '/today', note: 'Work Projection으로 이동' }],
+  '/today': [{ label: 'A/S Source 열기', target: '/as-cases', note: 'Projection에서 Source Domain으로 이동' }, { label: '견적 Source 열기', target: '/sales', note: 'Projection에서 Sales Source로 이동' }],
+  '/customers': [{ label: 'A/S 접수', target: '/as-cases', note: 'Customer360 Quick Action → Domain' }, { label: '영업·견적 열기', target: '/sales', note: '동일 Customer Context에서 Domain 진입' }],
+  '/as-cases': [{ label: 'VS Handoff', target: '/field-service', note: 'What we know / tried / need 이후 현장업무 진입' }],
+  '/field-service': [{ label: 'Customer360 History 확인', target: '/customers', note: 'Evidence 결과는 Activity Ledger 경유' }],
+  '/sales': [{ label: 'Customer360으로 복귀', target: '/customers', note: 'Customer Master Context 유지' }],
+  '/operations': [{ label: 'Customer360 Context 확인', target: '/customers', note: 'Logical Source 처리 후 Context Return' }],
+}
+
 function LiveContract({ endpoint }: { endpoint: string }) {
   const query = useQuery({ queryKey: ['mock-contract', endpoint], queryFn: () => fetchMockResource(endpoint) })
   if (query.isLoading) return <div className="api-box">Mock API 연결 중…</div>
@@ -60,8 +74,22 @@ function LiveContract({ endpoint }: { endpoint: string }) {
 
 function MockScreen({ spec }: { spec: ScreenSpec }) {
   const location = useLocation()
+  const navigate = useNavigate()
   const endpoint = API_BY_PATH[location.pathname]
-  return <section className="panel"><div className="screen-head"><div><span className="eyebrow">{spec.id}</span><h1>{spec.title}</h1><p>{spec.summary}</p></div><span className="state-pill">{spec.state}</span></div><div className="card-grid">{spec.cards.map((card) => <article className="metric-card" key={card.label}><small>{card.label}</small><strong>{card.value}</strong><p>{card.note}</p></article>)}</div><div className="rule-grid"><article><small>Guard</small><strong>{spec.guard}</strong></article><article><small>Return</small><strong>{spec.returnRule}</strong></article></div>{endpoint ? <LiveContract endpoint={endpoint} /> : null}<p className="hold-note">Logical/Mock only · Physical DB / Provider / Production Binding = HOLD</p></section>
+  const actions = ACTIONS_BY_PATH[location.pathname] ?? []
+  const navState = (location.state ?? {}) as NavigationState
+
+  const go = (action: MockAction) => navigate(action.target, { state: { returnTo: location.pathname, originLabel: spec.title } satisfies NavigationState })
+
+  return <section className="panel">
+    <div className="screen-head"><div><span className="eyebrow">{spec.id}</span><h1>{spec.title}</h1><p>{spec.summary}</p></div><span className="state-pill">{spec.state}</span></div>
+    <div className="card-grid">{spec.cards.map((card) => <article className="metric-card" key={card.label}><small>{card.label}</small><strong>{card.value}</strong><p>{card.note}</p></article>)}</div>
+    {actions.length ? <div className="action-zone">{actions.map((action, index) => <button key={action.label} className={index === 0 ? 'btn-primary' : 'btn-secondary'} onClick={() => go(action)}><strong>{action.label}</strong><span>{action.note}</span></button>)}</div> : null}
+    {navState.returnTo ? <div className="return-strip"><span>{navState.originLabel ?? '이전 Context'}에서 진입</span><button className="btn-tertiary" onClick={() => navigate(navState.returnTo!)}>이전 Context로 돌아가기</button></div> : null}
+    <div className="rule-grid"><article><small>Guard</small><strong>{spec.guard}</strong></article><article><small>Return</small><strong>{spec.returnRule}</strong></article></div>
+    {endpoint ? <LiveContract endpoint={endpoint} /> : null}
+    <p className="hold-note">Logical/Mock only · Physical DB / Provider / Production Binding = HOLD</p>
+  </section>
 }
 
 export function App() {
