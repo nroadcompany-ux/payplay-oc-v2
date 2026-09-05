@@ -70,6 +70,15 @@
 - Sprint 1 integration cases: 23
 - Interactive flow / visual / HOLD regression cases: 30
 
+### CI Gate
+- `.github/workflows/ci.yml`
+- Node 20.19 + pnpm 11.21
+- `pnpm typecheck`
+- `pnpm build`
+- Guard: Prisma migrations directory detection
+- Guard: obvious provider/credential binding pattern detection
+- Workflow execution evidence: pending first GitHub Actions run; creation itself does not equal CI PASS
+
 ## Still HOLD / Forbidden
 
 - `PMG-101~104`, `PMG-201~202`, `PMG-HOLD`
@@ -93,5 +102,6 @@
 - Sprint 0: COMPLETE WITH HOLD
 - Sprint 1 Core Logical/Mock: IN PROGRESS
 - Physical Binding / DB Migration / Production: HOLD
+- CI: WORKFLOW CREATED / FIRST RUN NOT YET OBSERVED
 
 `New Product Meaning Created = 0`
