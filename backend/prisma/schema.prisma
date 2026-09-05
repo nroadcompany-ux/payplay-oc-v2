@@ -1,0 +1,12 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Physical schema intentionally omitted.
+// Shared Person / Merchant / IAM, Inventory physical schema, provider bindings,
+// and DB migration remain HOLD until their dedicated physical decisions are resolved.

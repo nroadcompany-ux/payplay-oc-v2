@@ -1,0 +1,13 @@
+{
+  "name": "payplay-oc-v2",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@11.21.0",
+  "engines": { "node": ">=20.19.0" },
+  "scripts": {
+    "dev": "pnpm --parallel --filter @payplay-oc/backend --filter @payplay-oc/web dev",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test"
+  }
+}
