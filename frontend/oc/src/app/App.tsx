@@ -1,21 +1,90 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Navigate, NavLink, Route, Routes, useLocation, useNavigate } from 'react-router'
 import { fetchMockResource, mockEndpoints, previewMockAction, type ActionPreview } from '../api/mockApi'
 
-const MENU = [
-  ['PCI-101', '업무 홈', '/home'],
-  ['PCI-201', '거래처 관리', '/vendors'],
-  ['PST-301', '고객 360', '/customers'],
-  ['PCS-101', 'TODAY', '/today'],
-  ['PCS-102', '신규설치 및 A/S 방문', '/field-service'],
-  ['PCS-103', 'A/S 접수', '/as-cases'],
-  ['PST-401', '영업·견적', '/sales'],
-  ['PCS-104', '수발주·미수금·재고', '/operations'],
-  ['PHR-101', '우리 팀', '/team'],
-  ['PSET-102', '권한 설정', '/settings/permissions'],
-  ['PSET-103', '화면·메뉴 설정', '/settings/menu'],
-] as const
+// Canonical 2-tier IA — mirrors contracts/menu-registry.json + docs/SIDEBAR_IA_BASELINE.md.
+// `path` is present only for menus that already have an implemented Pilot/Batch screen;
+// items without one render as disabled placeholders rather than new fabricated screens.
+type MenuLeaf = { id: string; label: string; path?: string; hold?: boolean }
+type MenuCategory = { id: string; label: string; hold?: boolean; items: MenuLeaf[] }
+
+const CATEGORY_MENU: MenuCategory[] = [
+  {
+    id: 'company', label: '회사정보', items: [
+      { id: 'PCI-101', label: '업무 홈', path: '/home' },
+      { id: 'PCI-102', label: '공지사항' },
+      { id: 'PCI-103', label: '회사 360' },
+      { id: 'PCI-104', label: '운영 매뉴얼' },
+      { id: 'PCI-201', label: '거래처 관리', path: '/vendors' },
+      { id: 'PCI-202', label: '거래처 상세' },
+    ],
+  },
+  {
+    id: 'sales', label: '영업관리', items: [
+      { id: 'PST-101', label: '신규유입' },
+      { id: 'PST-102', label: '가망고객' },
+      { id: 'PST-103', label: 'TM 영업 일정' },
+      { id: 'PST-201', label: '방문 영업 일정' },
+      { id: 'PST-401', label: '견적서 관리', path: '/sales' },
+      { id: 'PST-402', label: '견적서 상세' },
+      { id: 'PST-302', label: '계약 심의(변경·해지)' },
+      { id: 'PST-303', label: '계약 만료 고객' },
+      { id: 'PST-490', label: '영업도구' },
+    ],
+  },
+  {
+    id: 'customer', label: '고객관리', items: [
+      { id: 'PST-301', label: '고객 360', path: '/customers' },
+      { id: 'PCS-101', label: 'TODAY', path: '/today' },
+      { id: 'PCS-102', label: '신규설치 및 A/S 방문', path: '/field-service' },
+      { id: 'PCS-103', label: 'A/S 접수', path: '/as-cases' },
+      { id: 'PCS-104', label: '택배 및 제품 수발주', path: '/operations' },
+      { id: 'PCS-105', label: '결제 및 미수금 관리', path: '/operations' },
+      { id: 'PCS-106', label: '재고관리', path: '/operations' },
+      { id: 'PCS-190', label: 'CS도구' },
+    ],
+  },
+  {
+    id: 'teamplay', label: '팀플레이', items: [
+      { id: 'PHR-101', label: '우리 팀', path: '/team' },
+      { id: 'PHR-102', label: '구성원' },
+      { id: 'PHR-103', label: '역할·업무분장' },
+      { id: 'PHR-104', label: '보고·협업' },
+      { id: 'PHR-105', label: '근무·휴가' },
+      { id: 'PHR-107', label: '내 정보' },
+      { id: 'PHR-108', label: '내 업무 도구' },
+    ],
+  },
+  {
+    id: 'management', label: '경영관리', hold: true, items: [
+      { id: 'PMG-101', label: '경영 현황', hold: true },
+      { id: 'PMG-102', label: '정산 관리', hold: true },
+      { id: 'PMG-103', label: '지출결의', hold: true },
+      { id: 'PMG-104', label: '수수료·보상', hold: true },
+      { id: 'PMG-201', label: '차량관리', hold: true },
+      { id: 'PMG-202', label: '주차관리', hold: true },
+    ],
+  },
+  {
+    id: 'settings', label: '설정관리', items: [
+      { id: 'PSET-101', label: '운영 설정' },
+      { id: 'PSET-102', label: '권한 설정', path: '/settings/permissions' },
+      { id: 'PSET-103', label: '화면·메뉴 설정', path: '/settings/menu' },
+      { id: 'PSET-104', label: '업무 Rule 설정' },
+      { id: 'PSET-105', label: '변경 이력·복구' },
+      { id: 'PSET-106', label: 'System 설정', hold: true },
+    ],
+  },
+]
+
+const MENU = CATEGORY_MENU.flatMap((category) => category.items)
+  .filter((item): item is MenuLeaf & { path: string } => Boolean(item.path))
+  .map((item) => [item.id, item.label, item.path] as const)
+
+function categoryForPath(pathname: string): MenuCategory | undefined {
+  return CATEGORY_MENU.find((category) => category.items.some((item) => item.path === pathname))
+}
 
 type ScreenSpec = { id: string; title: string; summary: string; state: string; cards: Array<{ label: string; value: string; note: string }>; guard: string; returnRule: string }
 type NavigationState = { returnTo?: string; originLabel?: string }
@@ -115,6 +184,88 @@ function MockScreen({ spec }: { spec: ScreenSpec }) {
   </section>
 }
 
+const dateFormatter = new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' })
+const timeFormatter = new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })
+
+function useNow() {
+  const [now, setNow] = useState(() => new Date())
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 1000)
+    return () => clearInterval(timer)
+  }, [])
+  return now
+}
+
+function PrimarySidebar({ activeCategoryId, onSelect }: { activeCategoryId: string; onSelect: (id: string) => void }) {
+  return <aside className="sidebar-primary">
+    <strong className="brand-mark">PP</strong>
+    <nav>
+      {CATEGORY_MENU.map((category) => (
+        <button
+          key={category.id}
+          type="button"
+          className={category.id === activeCategoryId ? 'active' : undefined}
+          onClick={() => onSelect(category.id)}
+          aria-current={category.id === activeCategoryId}
+        >
+          <span>{category.label}</span>
+          {category.hold ? <small className="hold-tag">HOLD</small> : null}
+        </button>
+      ))}
+    </nav>
+  </aside>
+}
+
+function SecondarySidebar({ category }: { category: MenuCategory }) {
+  return <aside className="sidebar-secondary">
+    <div className="sidebar-secondary-head">{category.label}</div>
+    <nav>
+      {category.items.map((item) => item.path
+        ? <NavLink key={item.id} to={item.path} className={({ isActive }) => isActive ? 'active' : undefined}><small>{item.id}</small><span>{item.label}</span></NavLink>
+        : <div key={item.id} className="nav-disabled" aria-disabled="true"><small>{item.id}</small><span>{item.label}</span><em>{item.hold ? 'HOLD' : '준비중'}</em></div>)}
+    </nav>
+  </aside>
+}
+
+function HeaderShall({ category, screenTitle }: { category?: MenuCategory; screenTitle?: string }) {
+  const now = useNow()
+  return <header className="shell-header">
+    <div className="header-context">
+      <span className="crumb-cat">{category?.label ?? 'PayPlay OC'}</span>
+      {screenTitle ? <><span className="crumb-sep">/</span><span className="crumb-page">{screenTitle}</span></> : null}
+    </div>
+    <div className="header-search">
+      <input type="search" placeholder="검색" aria-label="검색" />
+    </div>
+    <div className="header-clock">
+      <span>{dateFormatter.format(now)}</span>
+      <strong>{timeFormatter.format(now)}</strong>
+    </div>
+    <div className="header-user">
+      <span className="user-role">운영자</span>
+      <span className="user-name">Mock User</span>
+    </div>
+  </header>
+}
+
 export function App() {
-  return <div className="shell"><aside className="sidebar"><strong>PayPlay OC v2</strong><span className="build-tag">EXECUTION / MOCK API</span><nav>{MENU.map(([id, label, path]) => <NavLink key={id} to={path} className={({ isActive }) => isActive ? 'active' : undefined}><small>{id}</small><span>{label}</span></NavLink>)}</nav></aside><main className="content"><Routes><Route path="/" element={<Navigate to="/home" replace />} />{MENU.map(([, , path]) => <Route key={path} path={path} element={<MockScreen spec={SCREENS[path]} />} />)}<Route path="*" element={<Navigate to="/home" replace />} /></Routes></main></div>
+  const location = useLocation()
+  const routeCategory = categoryForPath(location.pathname)
+  const [manualCategoryId, setManualCategoryId] = useState<string | null>(null)
+  useEffect(() => setManualCategoryId(null), [location.pathname])
+  const activeCategory = CATEGORY_MENU.find((category) => category.id === manualCategoryId) ?? routeCategory ?? CATEGORY_MENU[0]
+  const screenTitle = SCREENS[location.pathname]?.title
+
+  return <div className="shell">
+    <PrimarySidebar activeCategoryId={activeCategory.id} onSelect={setManualCategoryId} />
+    <SecondarySidebar category={activeCategory} />
+    <HeaderShall category={activeCategory} screenTitle={screenTitle} />
+    <main className="content">
+      <Routes>
+        <Route path="/" element={<Navigate to="/home" replace />} />
+        {MENU.map(([, , path]) => <Route key={path} path={path} element={<MockScreen spec={SCREENS[path]} />} />)}
+        <Route path="*" element={<Navigate to="/home" replace />} />
+      </Routes>
+    </main>
+  </div>
 }
