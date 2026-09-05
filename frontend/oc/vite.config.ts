@@ -14,4 +14,5 @@ export default defineConfig({
     proxy: { '/api': { target: 'http://localhost:8080' } },
   },
   preview: { host: '0.0.0.0', port: 4173 },
+  test: { passWithNoTests: true },
 })

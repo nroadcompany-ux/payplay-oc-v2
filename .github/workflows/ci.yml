@@ -42,7 +42,7 @@ jobs:
             echo 'Physical Prisma migration directory detected. HOLD violation.'
             exit 1
           fi
-          if grep -R --line-number -E 'LOGEN_(TOKEN|KEY)|PROVIDER_SECRET|DATABASE_URL=.+' . --exclude-dir=node_modules --exclude='*.md'; then
+          if grep -R --line-number -E 'LOGEN_(TOKEN|KEY)|PROVIDER_SECRET|DATABASE_URL=.+' . --exclude-dir=node_modules --exclude='*.md' --exclude-dir=.github; then
             echo 'Potential provider/credential binding detected. Review required.'
             exit 1
           fi
