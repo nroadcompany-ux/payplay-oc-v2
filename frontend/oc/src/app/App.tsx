@@ -6,7 +6,7 @@ import { fetchMockResource, mockEndpoints, previewMockAction, type ActionPreview
 // Canonical 2-tier IA — mirrors contracts/menu-registry.json + docs/SIDEBAR_IA_BASELINE.md.
 // `path` is present only for menus that already have an implemented Pilot/Batch screen;
 // items without one render as disabled placeholders rather than new fabricated screens.
-type MenuLeaf = { id: string; label: string; path?: string; hold?: boolean }
+type MenuLeaf = { id: string; label: string; path?: string; hold?: boolean; mergedNote?: string }
 type MenuCategory = { id: string; label: string; hold?: boolean; items: MenuLeaf[] }
 
 const CATEGORY_MENU: MenuCategory[] = [
@@ -40,8 +40,8 @@ const CATEGORY_MENU: MenuCategory[] = [
       { id: 'PCS-102', label: '신규설치 및 A/S 방문', path: '/field-service' },
       { id: 'PCS-103', label: 'A/S 접수', path: '/as-cases' },
       { id: 'PCS-104', label: '택배 및 제품 수발주', path: '/operations' },
-      { id: 'PCS-105', label: '결제 및 미수금 관리', path: '/operations' },
-      { id: 'PCS-106', label: '재고관리', path: '/operations' },
+      { id: 'PCS-105', label: '결제 및 미수금 관리', mergedNote: 'PCS-104 화면에 포함' },
+      { id: 'PCS-106', label: '재고관리', mergedNote: 'PCS-104 화면에 포함' },
       { id: 'PCS-190', label: 'CS도구' },
     ],
   },
@@ -86,6 +86,10 @@ function categoryForPath(pathname: string): MenuCategory | undefined {
   return CATEGORY_MENU.find((category) => category.items.some((item) => item.path === pathname))
 }
 
+function firstPathOf(category: MenuCategory): string | undefined {
+  return category.items.find((item) => item.path)?.path
+}
+
 type ScreenSpec = { id: string; title: string; summary: string; state: string; cards: Array<{ label: string; value: string; note: string }>; guard: string; returnRule: string }
 type NavigationState = { returnTo?: string; originLabel?: string }
 type NavAction = { label: string; target: string; note: string }
@@ -93,7 +97,7 @@ type PreviewAction = { label: string; endpoint: string; action: string; sourceId
 
 const SCREENS: Record<string, ScreenSpec> = {
   '/home': { id: 'PCI-101', title: '업무 홈', summary: '원본 Transaction을 직접 수정하지 않는 Work Projection.', state: '정상 · 지연 · 보류', cards: [{ label: '오늘 처리', value: '12', note: 'Source Domain으로 Drill-down' }, { label: '보류', value: '3', note: '원인과 원본 업무 링크 유지' }, { label: '방문 예정', value: '5', note: 'VS/TM/방문영업 일정 Projection' }], guard: 'Projection에서 원본 업무 직접 수정 금지', returnRule: 'Source 처리 후 기존 Home/TODAY Context로 복귀' },
-  '/today': { id: 'PCS-101', title: 'TODAY', summary: '업무별 Source를 모아 보여주는 실행 Queue.', state: '예정 · 진행 · 보류 · 완료', cards: [{ label: '예정', value: '6', note: 'Source 상세 진입' }, { label: '진행', value: '4', note: 'Source State 기준' }, { label: '완료', value: '2', note: 'VS는 Verified Complete만 반영' }], guard: 'TODAY = Work Projection, Source Truth 아님', returnRule: 'Source 완료/취소 후 Queue Context 유지' },
+  '/today': { id: 'PCS-101', title: 'TODAY', summary: '업무별 Source를 모아 보여주는 실행 Queue.', state: '오늘 · 지연 · 보류 · 완료', cards: [{ label: '오늘', value: '2', note: 'Source 상세 진입' }, { label: '지연', value: '1', note: 'Source State 기준' }, { label: '완료', value: '1', note: 'VS는 Verified Complete만 반영' }], guard: 'TODAY = Work Projection, Source Truth 아님', returnRule: 'Source 완료/취소 후 Queue Context 유지' },
   '/customers': { id: 'PST-301', title: '고객 360', summary: 'Canonical Customer Context. 업무별 View는 중복 Customer Master가 아니다.', state: '기본정보 · 진행업무 · 최근이력', cards: [{ label: '현재 진행', value: '견적 1 · A/S 1', note: '각 Domain Owner로 이동' }, { label: '최근 이력', value: '8건', note: 'Activity Ledger 기반' }, { label: 'Quick Action', value: 'A/S 접수', note: 'Domain Action 후 Customer360 Return' }], guard: '신규유입/가망/TM/방문영업 별도 고객 Master 생성 금지', returnRule: 'Domain 완료/취소 → 동일 Customer Context 복귀' },
   '/field-service': { id: 'PCS-102', title: '신규설치 및 A/S 방문', summary: '현장 Action과 Evidence를 분리하고 Verified Complete Gate를 적용.', state: '작업중 · 부분완료 · 재방문 · 완료', cards: [{ label: '필수 Evidence', value: '사진 · Serial · Test · 고객확인', note: '누락 시 완료 불가' }, { label: '부분완료', value: '허용', note: '완료 수량/잔여 작업 기록' }, { label: 'Verified Complete', value: 'Gate', note: '필수 Evidence 충족 후' }], guard: '이동중/Offline/기사 중복배정 Exact Rule은 HOLD', returnRule: '결과 → Activity Ledger → Customer360 / TODAY' },
   '/as-cases': { id: 'PCS-103', title: 'A/S 접수', summary: 'CS 진단 → 필요 시 VS Handoff → 별도 Case Close.', state: '접수 · 진단 · 방문필요 · 결과 · 종료', cards: [{ label: 'What we know', value: '필수', note: '현재까지 확인된 사실' }, { label: 'What we tried', value: '필수', note: '원격 처리 시도' }, { label: 'What we need', value: '필수', note: '현장 요청사항' }], guard: 'VS 완료 ≠ A/S Case Close / 자동 Close 금지', returnRule: 'Case 결과와 Close는 분리 명령' },
@@ -106,13 +110,11 @@ const SCREENS: Record<string, ScreenSpec> = {
 }
 
 const API_BY_PATH: Record<string, string | undefined> = {
-  '/customers': mockEndpoints.customer360(), '/today': mockEndpoints.today, '/field-service': mockEndpoints.service(), '/as-cases': mockEndpoints.service(), '/sales': mockEndpoints.sales, '/operations': mockEndpoints.operations, '/settings/permissions': mockEndpoints.settings, '/settings/menu': mockEndpoints.settings,
+  '/field-service': mockEndpoints.service(), '/as-cases': mockEndpoints.service(), '/sales': mockEndpoints.sales, '/operations': mockEndpoints.operations, '/settings/permissions': mockEndpoints.settings, '/settings/menu': mockEndpoints.settings,
 }
 
 const NAV_ACTIONS: Record<string, NavAction[]> = {
   '/home': [{ label: 'TODAY 열기', target: '/today', note: 'Work Projection으로 이동' }],
-  '/today': [{ label: 'A/S Source 열기', target: '/as-cases', note: 'Projection → Source Domain' }, { label: '견적 Source 열기', target: '/sales', note: 'Projection → Sales Source' }],
-  '/customers': [{ label: 'A/S 접수', target: '/as-cases', note: 'Customer360 Quick Action' }, { label: '영업·견적 열기', target: '/sales', note: '동일 Customer Context' }],
   '/as-cases': [{ label: 'VS Handoff', target: '/field-service', note: 'CS→VS Handoff' }],
   '/field-service': [{ label: 'Customer360 History', target: '/customers', note: 'Activity Ledger 결과 확인' }],
   '/sales': [{ label: 'Customer360 복귀', target: '/customers', note: 'Customer Context 유지' }],
@@ -184,34 +186,186 @@ function MockScreen({ spec }: { spec: ScreenSpec }) {
   </section>
 }
 
-const dateFormatter = new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' })
-const timeFormatter = new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })
+type TodayState = '오늘' | '지연' | '보류' | '완료'
+type TodayItem = { id: string; title: string; customer: string; sourceLabel: string; sourcePath: string; state: TodayState; mine: boolean; attention?: string }
+
+const TODAY_STATES: TodayState[] = ['오늘', '지연', '보류', '완료']
+const TODAY_ITEMS: TodayItem[] = [
+  { id: 'WRK-1001', title: 'A/S 방문 일정 조율', customer: '지지컴퍼니 강남점', sourceLabel: 'A/S 접수', sourcePath: '/as-cases', state: '오늘', mine: true },
+  { id: 'WRK-1002', title: '견적 회신 확인', customer: '한아름 유통', sourceLabel: '영업·견적', sourcePath: '/sales', state: '지연', mine: true, attention: '고객 회신 2일 지연' },
+  { id: 'WRK-1003', title: '설치 일정 보류', customer: '미소상회', sourceLabel: '신규설치 및 A/S 방문', sourcePath: '/field-service', state: '보류', mine: true, attention: '부품 입고 대기' },
+  { id: 'WRK-1004', title: '정기 점검 Verified Complete', customer: '든든마트', sourceLabel: '신규설치 및 A/S 방문', sourcePath: '/field-service', state: '완료', mine: true },
+  { id: 'WRK-1005', title: '거래처 계약 갱신 확인', customer: '대성물류', sourceLabel: '거래처 관리', sourcePath: '/vendors', state: '오늘', mine: false },
+]
+
+function TodayScreen() {
+  const location = useLocation()
+  const navigate = useNavigate()
+  const navState = (location.state ?? {}) as NavigationState
+  const spec = SCREENS['/today']
+  const mine = TODAY_ITEMS.filter((item) => item.mine)
+  const attention = mine.filter((item) => item.attention)
+  const recentDone = TODAY_ITEMS.filter((item) => item.state === '완료')
+  const [selectedId, setSelectedId] = useState<string>(mine[0]?.id ?? TODAY_ITEMS[0].id)
+  const selected = TODAY_ITEMS.find((item) => item.id === selectedId) ?? TODAY_ITEMS[0]
+  const openSource = () => navigate(selected.sourcePath, { state: { returnTo: '/today', originLabel: 'TODAY' } satisfies NavigationState })
+
+  return <section className="panel">
+    <div className="screen-head"><div><span className="eyebrow">{spec.id}</span><h1>{spec.title}</h1><p>{spec.summary}</p></div><span className="state-pill">{spec.state}</span></div>
+    <div className="card-grid">
+      {TODAY_STATES.map((state) => <article className="metric-card" key={state}>
+        <small>{state}</small>
+        <strong>{TODAY_ITEMS.filter((item) => item.state === state).length}</strong>
+        <p>{state === '완료' ? 'VS 결과는 Verified Complete 기준으로만 반영' : 'Source Domain으로 Drill-down'}</p>
+      </article>)}
+    </div>
+    <div className="today-columns">
+      <div className="today-list-col">
+        <div className="section-label">내 업무</div>
+        <ul className="work-list">
+          {mine.map((item) => <li key={item.id}>
+            <button type="button" className={item.id === selectedId ? 'work-item active' : 'work-item'} onClick={() => setSelectedId(item.id)}>
+              <span className="work-state" data-state={item.state}>{item.state}</span>
+              <span className="work-title">{item.title}</span>
+              <span className="work-customer">{item.customer}</span>
+              {item.attention ? <span className="work-attention">주의</span> : null}
+            </button>
+          </li>)}
+        </ul>
+        {attention.length ? <>
+          <div className="section-label">주의 필요</div>
+          <ul className="attention-list">{attention.map((item) => <li key={item.id}><strong>{item.title}</strong><span>{item.attention}</span></li>)}</ul>
+        </> : null}
+        <div className="section-label">최근 완료</div>
+        <ul className="recent-done-list">{recentDone.map((item) => <li key={item.id}><span>{item.title}</span><small>{item.customer}</small></li>)}</ul>
+      </div>
+      <div className="today-detail-col">
+        <div className="section-label">선택 업무</div>
+        <div className="work-detail">
+          <strong>{selected.title}</strong>
+          <div className="work-detail-row"><small>Customer</small><span>{selected.customer}</span></div>
+          <div className="work-detail-row"><small>Source</small><span>{selected.sourceLabel}</span></div>
+          <div className="work-detail-row"><small>State</small><span>{selected.state}</span></div>
+          {selected.attention ? <div className="work-detail-row"><small>주의</small><span>{selected.attention}</span></div> : null}
+          <button type="button" className="btn-primary" onClick={openSource}><strong>Source 열기</strong><span>{selected.sourceLabel}로 이동 · Projection은 원본을 수정하지 않음</span></button>
+        </div>
+      </div>
+    </div>
+    {navState.returnTo ? <div className="return-strip"><span>{navState.originLabel ?? '이전 Context'}에서 진입</span><button className="btn-tertiary" onClick={() => navigate(navState.returnTo!)}>이전 Context로 돌아가기</button></div> : null}
+    <div className="rule-grid"><article><small>Guard</small><strong>{spec.guard}</strong></article><article><small>Return</small><strong>{spec.returnRule}</strong></article></div>
+    <LiveContract endpoint={mockEndpoints.today} />
+    <p className="hold-note">Logical/Mock only · Physical DB / Provider / Production Binding = HOLD</p>
+  </section>
+}
+
+type CustomerActivity = { id: string; time: string; label: string; note: string }
+type CustomerWork = { id: string; label: string; state: string; path: string }
+
+const CUSTOMER_MOCK = {
+  name: '지지컴퍼니 강남점',
+  storeCode: 'STR-00231',
+  status: '활성',
+  tier: '일반 가맹',
+  contact: '김OO 매니저 · 010-****-1234',
+  region: '서울 강남구',
+  contractType: '표준 이용약관',
+}
+const CUSTOMER_WORK: CustomerWork[] = [
+  { id: 'WRK-2001', label: '견적 진행중 · PST-401', state: '견적 검토', path: '/sales' },
+  { id: 'WRK-2002', label: 'A/S 진행중 · PCS-103', state: '진단 완료 · 방문 필요', path: '/as-cases' },
+]
+const CUSTOMER_ACTIVITY: CustomerActivity[] = [
+  { id: 'ACT-01', time: '09-05 14:20', label: 'A/S 접수', note: '결제 단말 오류 신고' },
+  { id: 'ACT-02', time: '09-03 11:05', label: '견적 발송', note: 'PST-401 견적서 #Q-2298' },
+  { id: 'ACT-03', time: '08-28 10:00', label: 'VS Verified Complete', note: '정기 점검 완료' },
+]
+const CUSTOMER_ATTENTION = [{ id: 'ATT-01', label: '견적 회신 대기 2일 경과', action: '영업·견적에서 후속 연락' }]
+
+function CustomerScreen() {
+  const location = useLocation()
+  const navigate = useNavigate()
+  const navState = (location.state ?? {}) as NavigationState
+  const spec = SCREENS['/customers']
+  const go = (target: string, originLabel: string) => navigate(target, { state: { returnTo: '/customers', originLabel } satisfies NavigationState })
+
+  return <section className="panel">
+    <div className="customer-header">
+      <div><span className="eyebrow">{spec.id}</span><h1>{CUSTOMER_MOCK.name}</h1><p>{spec.summary}</p></div>
+      <span className="state-pill">{CUSTOMER_MOCK.status}</span>
+    </div>
+    <div className="store-context">
+      <article><small>Store Code</small><strong>{CUSTOMER_MOCK.storeCode}</strong></article>
+      <article><small>구분</small><strong>{CUSTOMER_MOCK.tier}</strong></article>
+      <article><small>담당자</small><strong>{CUSTOMER_MOCK.contact}</strong></article>
+      <article><small>지역</small><strong>{CUSTOMER_MOCK.region}</strong></article>
+      <article><small>계약 유형</small><strong>{CUSTOMER_MOCK.contractType}</strong></article>
+    </div>
+    <div className="action-zone">
+      <button className="btn-primary" onClick={() => go('/as-cases', '고객 360')}><strong>A/S 접수</strong><span>Customer360 Quick Action</span></button>
+      <button className="btn-secondary" onClick={() => go('/sales', '고객 360')}><strong>영업·견적 열기</strong><span>동일 Customer Context</span></button>
+    </div>
+    <div className="customer-columns">
+      <div>
+        <div className="section-label">진행 업무</div>
+        <ul className="work-list">{CUSTOMER_WORK.map((item) => <li key={item.id}>
+          <button type="button" className="work-item" onClick={() => go(item.path, '고객 360')}>
+            <span className="work-title">{item.label}</span>
+            <span className="work-customer">{item.state}</span>
+          </button>
+        </li>)}</ul>
+        {CUSTOMER_ATTENTION.length ? <>
+          <div className="section-label">Attention · Next Action</div>
+          <ul className="attention-list">{CUSTOMER_ATTENTION.map((item) => <li key={item.id}><strong>{item.label}</strong><span>{item.action}</span></li>)}</ul>
+        </> : null}
+      </div>
+      <div>
+        <div className="section-label">최근 Activity</div>
+        <ul className="activity-list">{CUSTOMER_ACTIVITY.map((item) => <li key={item.id}><small>{item.time}</small><strong>{item.label}</strong><span>{item.note}</span></li>)}</ul>
+      </div>
+    </div>
+    {navState.returnTo ? <div className="return-strip"><span>{navState.originLabel ?? '이전 Context'}에서 진입</span><button className="btn-tertiary" onClick={() => navigate(navState.returnTo!)}>이전 Context로 돌아가기</button></div> : null}
+    <div className="rule-grid"><article><small>Guard</small><strong>{spec.guard}</strong></article><article><small>Return</small><strong>{spec.returnRule}</strong></article></div>
+    <LiveContract endpoint={mockEndpoints.customer360()} />
+    <p className="hold-note">Logical/Mock only · Physical DB / Provider / Production Binding = HOLD</p>
+  </section>
+}
+
+const dateFormatter = new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', month: 'long', day: 'numeric' })
+const weekdayFormatter = new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', weekday: 'short' })
+const timeFormatter = new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', hour: '2-digit', minute: '2-digit', hour12: false })
 
 function useNow() {
   const [now, setNow] = useState(() => new Date())
   useEffect(() => {
-    const timer = setInterval(() => setNow(new Date()), 1000)
+    const timer = setInterval(() => setNow(new Date()), 30000)
     return () => clearInterval(timer)
   }, [])
   return now
 }
 
-function PrimarySidebar({ activeCategoryId, onSelect }: { activeCategoryId: string; onSelect: (id: string) => void }) {
+function PrimarySidebar({ activeCategoryId }: { activeCategoryId: string }) {
+  const navigate = useNavigate()
   return <aside className="sidebar-primary">
     <strong className="brand-mark">PP</strong>
     <nav>
-      {CATEGORY_MENU.map((category) => (
-        <button
-          key={category.id}
-          type="button"
-          className={category.id === activeCategoryId ? 'active' : undefined}
-          onClick={() => onSelect(category.id)}
-          aria-current={category.id === activeCategoryId}
-        >
-          <span>{category.label}</span>
-          {category.hold ? <small className="hold-tag">HOLD</small> : null}
-        </button>
-      ))}
+      {CATEGORY_MENU.map((category) => {
+        const target = firstPathOf(category)
+        const disabled = category.hold || !target
+        return (
+          <button
+            key={category.id}
+            type="button"
+            className={category.id === activeCategoryId ? 'active' : undefined}
+            onClick={() => target && navigate(target)}
+            disabled={disabled}
+            aria-current={category.id === activeCategoryId}
+            aria-disabled={disabled}
+          >
+            <span>{category.label}</span>
+            {category.hold ? <small className="hold-tag">HOLD</small> : null}
+          </button>
+        )
+      })}
     </nav>
   </aside>
 }
@@ -222,7 +376,7 @@ function SecondarySidebar({ category }: { category: MenuCategory }) {
     <nav>
       {category.items.map((item) => item.path
         ? <NavLink key={item.id} to={item.path} className={({ isActive }) => isActive ? 'active' : undefined}><small>{item.id}</small><span>{item.label}</span></NavLink>
-        : <div key={item.id} className="nav-disabled" aria-disabled="true"><small>{item.id}</small><span>{item.label}</span><em>{item.hold ? 'HOLD' : '준비중'}</em></div>)}
+        : <div key={item.id} className="nav-disabled" aria-disabled="true"><small>{item.id}</small><span>{item.label}</span><em>{item.mergedNote ?? (item.hold ? 'HOLD' : '준비중')}</em></div>)}
     </nav>
   </aside>
 }
@@ -238,7 +392,7 @@ function HeaderShall({ category, screenTitle }: { category?: MenuCategory; scree
       <input type="search" placeholder="검색" aria-label="검색" />
     </div>
     <div className="header-clock">
-      <span>{dateFormatter.format(now)}</span>
+      <span>{dateFormatter.format(now)} ({weekdayFormatter.format(now)})</span>
       <strong>{timeFormatter.format(now)}</strong>
     </div>
     <div className="header-user">
@@ -250,20 +404,19 @@ function HeaderShall({ category, screenTitle }: { category?: MenuCategory; scree
 
 export function App() {
   const location = useLocation()
-  const routeCategory = categoryForPath(location.pathname)
-  const [manualCategoryId, setManualCategoryId] = useState<string | null>(null)
-  useEffect(() => setManualCategoryId(null), [location.pathname])
-  const activeCategory = CATEGORY_MENU.find((category) => category.id === manualCategoryId) ?? routeCategory ?? CATEGORY_MENU[0]
+  const activeCategory = categoryForPath(location.pathname) ?? CATEGORY_MENU[0]
   const screenTitle = SCREENS[location.pathname]?.title
 
   return <div className="shell">
-    <PrimarySidebar activeCategoryId={activeCategory.id} onSelect={setManualCategoryId} />
+    <PrimarySidebar activeCategoryId={activeCategory.id} />
     <SecondarySidebar category={activeCategory} />
     <HeaderShall category={activeCategory} screenTitle={screenTitle} />
     <main className="content">
       <Routes>
         <Route path="/" element={<Navigate to="/home" replace />} />
-        {MENU.map(([, , path]) => <Route key={path} path={path} element={<MockScreen spec={SCREENS[path]} />} />)}
+        <Route path="/today" element={<TodayScreen />} />
+        <Route path="/customers" element={<CustomerScreen />} />
+        {MENU.filter(([, , path]) => path !== '/today' && path !== '/customers').map(([, , path]) => <Route key={path} path={path} element={<MockScreen spec={SCREENS[path]} />} />)}
         <Route path="*" element={<Navigate to="/home" replace />} />
       </Routes>
     </main>
