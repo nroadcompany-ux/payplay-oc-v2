@@ -1,4 +1,4 @@
-import { Controller, Get, Param } from '@nestjs/common'
+import { Body, Controller, Get, Param, Post } from '@nestjs/common'
 
 const customer360 = {
   customerId: 'CUST-MOCK-001',
@@ -34,21 +34,14 @@ const service = {
     whatWeNeed: '현장 전원/단말 테스트',
     remoteImpossibleReason: '현장 전원 측정 필요',
   },
-  schedule: {
-    owner: 'PCS-102',
-    state: '예정',
-    historyPreservedOnChange: true,
-  },
+  schedule: { owner: 'PCS-102', state: '예정', historyPreservedOnChange: true },
   visit: {
     owner: 'PCS-102',
     evidenceRequired: ['사진', 'Serial/Asset', 'Test Result', '고객 확인'],
     importantStates: ['부분완료', 'Missing Evidence', '재방문', 'Verified Complete'],
     verifiedCompleteGate: '필수 Evidence 충족 후에만 가능',
   },
-  historyReturn: {
-    via: 'Activity Ledger',
-    target: 'PST-301 Customer360',
-  },
+  historyReturn: { via: 'Activity Ledger', target: 'PST-301 Customer360' },
   closeRule: 'VS 완료와 A/S Case Close는 별도 명령',
 }
 
@@ -62,8 +55,7 @@ const sales = {
     { id: 'PST-201', name: '방문 영업 일정', next: 'PST-401', transition: 'manual' },
   ],
   quote: {
-    owner: 'PST-401',
-    detailOwner: 'PST-402',
+    owner: 'PST-401', detailOwner: 'PST-402',
     actions: ['작성', '수정', 'PDF', '전송', '상태변경', '견적→계약'],
     internalApprovalIncluded: false,
     contractHandoff: '기존 Contract/Fulfillment Source로 전달',
@@ -72,71 +64,94 @@ const sales = {
 }
 
 const operations = {
-  supply: {
-    owner: 'PCS-104',
-    scope: ['택배', '제품 수발주', 'Manufacturer inbound A/S 연계'],
-    productionCarrierBinding: 'HOLD',
-  },
-  receivable: {
-    owner: 'PCS-105',
-    surface: 'Restricted Summary + Queue',
-    physicalEntityStateAllocation: 'HOLD',
-  },
-  inventory: {
-    owner: 'PCS-106',
-    mode: 'LOGICAL_MOCK_ONLY',
-    physicalSchemaMigration: 'HOLD',
-  },
+  supply: { owner: 'PCS-104', scope: ['택배', '제품 수발주', 'Manufacturer inbound A/S 연계'], productionCarrierBinding: 'HOLD' },
+  receivable: { owner: 'PCS-105', surface: 'Restricted Summary + Queue', physicalEntityStateAllocation: 'HOLD' },
+  inventory: { owner: 'PCS-106', mode: 'LOGICAL_MOCK_ONLY', physicalSchemaMigration: 'HOLD' },
 }
 
 const settings = {
-  menuRegistry: {
-    owner: 'PSET-103',
-    canonicalIdMutable: false,
-    mutable: ['displayName', 'order', 'visibility'],
-  },
-  permission: {
-    owner: 'PSET-102',
-    dimensions: ['menu', 'rowScope', 'fieldVisibility', 'actionPermission'],
-    defaultPolicy: 'DENY',
-  },
-  audit: {
-    owner: 'PSET-105',
-    beforeAfterRequired: true,
-    recoveryRequired: true,
-  },
+  menuRegistry: { owner: 'PSET-103', canonicalIdMutable: false, mutable: ['displayName', 'order', 'visibility'] },
+  permission: { owner: 'PSET-102', dimensions: ['menu', 'rowScope', 'fieldVisibility', 'actionPermission'], defaultPolicy: 'DENY' },
+  audit: { owner: 'PSET-105', beforeAfterRequired: true, recoveryRequired: true },
   systemSetting: { owner: 'PSET-106', state: 'HOLD' },
+}
+
+type ActionPreview = { action: string; sourceId: string; payload?: Record<string, unknown> }
+
+function preview(action: ActionPreview, result: Record<string, unknown>) {
+  return {
+    mode: 'LOGICAL_MOCK_PREVIEW',
+    persisted: false,
+    activityLedgerAppendOnly: true,
+    ...action,
+    result,
+  }
 }
 
 @Controller('mock')
 export class CoreMockController {
   @Get('customer360/:id')
-  getCustomer360(@Param('id') id: string) {
-    return { ...customer360, requestedCustomerId: id, mode: 'LOGICAL_MOCK' }
-  }
+  getCustomer360(@Param('id') id: string) { return { ...customer360, requestedCustomerId: id, mode: 'LOGICAL_MOCK' } }
 
   @Get('today')
-  getToday() {
-    return { ...today, mode: 'LOGICAL_MOCK' }
-  }
+  getToday() { return { ...today, mode: 'LOGICAL_MOCK' } }
 
   @Get('service/as-case/:id')
-  getServiceCase(@Param('id') id: string) {
-    return { ...service, requestedCaseId: id, mode: 'LOGICAL_MOCK' }
+  getServiceCase(@Param('id') id: string) { return { ...service, requestedCaseId: id, mode: 'LOGICAL_MOCK' } }
+
+  @Post('service/action')
+  previewService(@Body() body: ActionPreview) {
+    const evidence = Array.isArray(body.payload?.evidence) ? body.payload?.evidence as string[] : []
+    if (body.action === 'VERIFIED_COMPLETE' && evidence.length < 4) {
+      return preview(body, { allowed: false, nextState: 'Missing Evidence', reason: '필수 Evidence 4종 충족 필요' })
+    }
+    if (body.action === 'CASE_CLOSE') {
+      return preview(body, { allowed: true, nextState: '종료', separateFromVsComplete: true })
+    }
+    return preview(body, { allowed: true, nextState: body.action })
   }
 
   @Get('sales')
-  getSales() {
-    return { ...sales, mode: 'LOGICAL_MOCK' }
+  getSales() { return { ...sales, mode: 'LOGICAL_MOCK' } }
+
+  @Post('sales/action')
+  previewSales(@Body() body: ActionPreview) {
+    return preview(body, {
+      allowed: true,
+      transition: 'manual',
+      autoTransition: false,
+      returnTo: '/customers',
+      internalApprovalIncluded: false,
+    })
   }
 
   @Get('operations')
-  getOperations() {
-    return { ...operations, mode: 'LOGICAL_MOCK' }
+  getOperations() { return { ...operations, mode: 'LOGICAL_MOCK' } }
+
+  @Post('operations/action')
+  previewOperations(@Body() body: ActionPreview) {
+    return preview(body, {
+      allowed: true,
+      physicalMutation: false,
+      physicalSchemaMigration: 'HOLD',
+      providerBinding: 'HOLD',
+      returnTo: '/customers',
+    })
   }
 
   @Get('settings')
-  getSettings() {
-    return { ...settings, mode: 'LOGICAL_MOCK' }
+  getSettings() { return { ...settings, mode: 'LOGICAL_MOCK' } }
+
+  @Post('settings/action')
+  previewSettings(@Body() body: ActionPreview) {
+    const immutable = body.payload?.field === 'canonicalId'
+    return preview(body, {
+      allowed: !immutable,
+      before: body.payload?.before ?? null,
+      after: immutable ? body.payload?.before ?? null : body.payload?.after ?? null,
+      auditRequired: true,
+      recoveryAvailable: !immutable,
+      reason: immutable ? 'Canonical ID는 변경할 수 없습니다.' : undefined,
+    })
   }
 }
