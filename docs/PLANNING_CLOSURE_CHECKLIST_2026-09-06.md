@@ -26,8 +26,8 @@ Claude Code 실제 개발 확대 전 기획 산출물·Prototype·Handoff가 닫
 - [x] 화면 설계 baseline
 - [x] 권한/상태/논리 데이터
 - [x] WBS / Developer Handoff baseline
-- [ ] Final cross-document trace audit
-- [ ] Final Error/Empty/Exception matrix audit
+- [x] Final cross-document trace audit
+- [x] Final Error/Empty/Exception matrix audit
 
 ## C. Current Source Recovery
 
@@ -57,7 +57,7 @@ Claude Code 실제 개발 확대 전 기획 산출물·Prototype·Handoff가 닫
 ## E. Prototype Gate
 
 - [x] Prototype Flow Spec
-- [ ] Prototype Screen Coverage Matrix
+- [x] Prototype Screen Coverage Matrix
 - [ ] Figma representative clickable prototype
 - [ ] Common Shell interaction validation
 - [ ] Source / Return validation
@@ -70,27 +70,26 @@ Claude Code 실제 개발 확대 전 기획 산출물·Prototype·Handoff가 닫
 
 - [x] Current Source reuse map attached
 - [x] Canonical route map attached
-- [ ] REUSE/MODIFY/NEW/HOLD matrix final
-- [ ] AC trace final
+- [x] REUSE/MODIFY/NEW/HOLD matrix final
+- [x] AC trace final
 - [ ] Prototype links attached
 - [x] HOLD list attached
-- [ ] No unresolved P0 semantic conflict
+- [x] No unresolved P0 semantic conflict
 - [ ] Final Developer Handoff PASS
 
 ## Development Resume Rule
 
 모든 필수 P0 체크가 완료되고 Prototype Gate + Developer Handoff Final Gate가 PASS된 후에만 Claude Code implementation expansion을 재개한다.
 
-## Next Closure Batch
+## Remaining Closure Items
 
-1. Final cross-document trace audit
-2. Final Error/Empty/Exception matrix audit
-3. Prototype Screen Coverage Matrix
-4. REUSE/MODIFY/NEW/HOLD final matrix
-5. AC trace finalization
-6. P0 semantic conflict audit
-7. Figma representative clickable prototype
-8. Owner Human Validation
-9. Developer Handoff Final PASS
+1. Exact archive ↔ `nroad-ecosystem/payplay` main SHA identity verification
+2. Figma representative clickable prototype P-01~P-07
+3. Common Shell / Source-Return / Empty-Error-Denied interaction validation
+4. Owner Human Validation
+5. Corrections reflected
+6. Prototype Gate PASS
+7. Prototype links attached to Developer Handoff
+8. Final Developer Handoff PASS
 
 `New Product Meaning Created = 0`
