@@ -4,7 +4,7 @@
 |---|---|
 | Document ID | PPOC2-DEC-001 |
 | Status | WORKING (파일 단위) |
-| Last Reviewed | 2026-09-05 |
+| Last Reviewed | 2026-09-06 |
 | 원칙 | 각 Decision은 개별 상태를 유지한다. Proposal을 Decision으로 임의 승격 금지. |
 
 ---
@@ -112,8 +112,8 @@ Approval threshold
 
 | # | 항목 | 왜 필요한가 | 상태 |
 |---|---|---|---|
-| ODR-01 | **기술 스택 확정** | 기존 `oc.payplay.kr` 계열의 실제 기술스택 확인 | **RESOLVED — React 19 + Vite 8 + React Router 8 / NestJS 11 / Prisma 6.19 / PostgreSQL / pnpm** |
-| ODR-02 | **oc.payplay.kr 현재 배포 Repository 확정** | 실제 배포체/운영 Repo를 특정해 재사용 정밀도를 높여야 함 | **OPEN** |
+| ODR-01 | **기술 스택 확정** | 기존 `oc.payplay.kr` 계열의 실제 기술스택 확인 | **OPEN / SOURCE CONFLICT — Owner 제공 정보는 Next.js+React+TypeScript / NestJS+TypeScript+PostgreSQL. GitHub `nroadcompany-ux/payplay`는 `payplay-tms-next`(Next.js 16 + React 19 + TS)로 확인됐으나 실제 `oc.payplay.kr` 배포 Repo 매핑은 미확인. 업로드 `frontend/oc` React/Vite 계열과 충돌하므로 Deployment Chain 확인 전 최종 확정 금지.** |
+| ODR-02 | **oc.payplay.kr 현재 배포 Repository 확정** | 실제 배포체/운영 Repo를 특정해 재사용 정밀도를 높여야 함 | **OPEN — `oc.payplay.kr → Hosting Project → Git Repo → package.json → route tree → API/backend repo` chain 필요** |
 | ODR-03 | **`PCS-106` 재고 Source Conflict 판정** | 최신 TMS `db.js`에 `biz_inventory`·`biz_inventory_log` 참조 확인됨. 단 `create table` migration 부재 | **부분 해소 — §RECOVERY_REPORT 참조** |
 | ODR-04 | **`biz_namecards` (명함관리) 처리** | Legacy 실기능이나 LEGACY RECOVERY QUEUE(REC-L01~L26) 어디에도 없음. Loss Risk | **OPEN** |
 | ODR-05 | **`biz_commission_grades` 처리** | `PMG-104` Formula 미확정 HOLD 상태이나 Legacy에 수수료 등급 자산이 실재 | **OPEN** |
@@ -127,3 +127,4 @@ Approval threshold
 |---|---|
 | 2026-09-05 | 최초 작성. Owner 지시서 + Sheet 07 v0.2 + Handoff v0.2 + OC Decision Register 반영 |
 | 2026-09-05 | ODR-01 기술스택을 업로드된 current PayPlay source evidence로 RESOLVED. ODR-06은 최신 Owner Source 우선 원칙에 따라 PST-301 유지로 정합. |
+| 2026-09-06 | Owner 제공 기존 OC 제작 스택(Frontend Next.js+TS+React / Backend NestJS+TS+PostgreSQL)과 GitHub `nroadcompany-ux/payplay` Next.js 자산 확인으로 ODR-01을 OPEN/SOURCE CONFLICT로 재개방. 실제 `oc.payplay.kr` Deployment Repo가 확인될 때까지 framework finalization 금지. |
