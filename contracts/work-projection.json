@@ -1,0 +1,22 @@
+{
+  "contractId": "PPOC2-CONTRACT-PROJECTION-001",
+  "status": "CURRENT",
+  "sourceIds": ["PCS-101", "PST-101", "PST-102", "PST-103", "PST-201", "OC-R-002", "OC-R-003", "OC-R-008", "OC-R-016"],
+  "projectionOwners": {
+    "today": "PCS-101",
+    "newLeadQueue": "PST-101",
+    "opportunityQueue": "PST-102",
+    "tmSchedule": "PST-103",
+    "fieldSalesSchedule": "PST-201"
+  },
+  "todayStates": ["예정", "진행", "보류", "완료"],
+  "rules": {
+    "isSourceTransactionMaster": false,
+    "directSourceMutation": false,
+    "salesTransitionAutomatic": false,
+    "customerMaster": "PST-301",
+    "verifiedCompleteRequiredForVsCompletionProjection": true,
+    "returnContextPreserved": true
+  },
+  "newProductMeaningCreated": 0
+}

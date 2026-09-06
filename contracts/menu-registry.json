@@ -1,0 +1,28 @@
+{
+  "contractId": "PPOC2-CONTRACT-MENU-001",
+  "status": "CURRENT",
+  "source": "Sheet 07 DEV MASTER + Handoff v0.2",
+  "rules": {
+    "canonicalIdImmutable": true,
+    "editableFields": ["displayName", "order", "visibility"],
+    "routeOwnerImmutableByMenuSetting": true,
+    "dataOwnerImmutableByMenuSetting": true,
+    "auditRequired": true
+  },
+  "categories": [
+    {"id":"company","displayName":"회사정보"},
+    {"id":"sales","displayName":"영업관리"},
+    {"id":"customer","displayName":"고객관리"},
+    {"id":"teamplay","displayName":"팀플레이"},
+    {"id":"management","displayName":"경영관리","implementation":"HOLD"},
+    {"id":"settings","displayName":"설정관리"}
+  ],
+  "canonicalMasters": {
+    "vendor":"PCI-201",
+    "customer":"PST-301",
+    "employeeOrganization":"PHR-101"
+  },
+  "projectionViews": ["PST-101","PST-102","PST-103","PST-201","PCS-101"],
+  "hold": ["PMG-101","PMG-102","PMG-103","PMG-104","PMG-201","PMG-202","PMG-HOLD","PSET-106"],
+  "newProductMeaningCreated": 0
+}

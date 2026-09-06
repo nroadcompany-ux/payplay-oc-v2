@@ -4,7 +4,7 @@
 |---|---|
 | Document ID | PPOC2-DEC-001 |
 | Status | WORKING (파일 단위) |
-| Last Reviewed | 2026-09-05 |
+| Last Reviewed | 2026-09-06 |
 | 원칙 | 각 Decision은 개별 상태를 유지한다. Proposal을 Decision으로 임의 승격 금지. |
 
 ---
@@ -112,12 +112,12 @@ Approval threshold
 
 | # | 항목 | 왜 필요한가 | 상태 |
 |---|---|---|---|
-| ODR-01 | **기술 스택 확정** | 지시서상 "기술스택 확인 전 앱 구조 생성 금지". 후보: (A) `payplay_os` 계열 Next.js + Supabase + Turborepo, (B) 신규 단일 Next.js, (C) Legacy TMS SPA 연장 | **OPEN** |
-| ODR-02 | **oc.payplay.kr 현재 배포 Repository 확정** | Sheet 기준화면이 `oc.payplay.kr/users`(path route)인데, Legacy TMS는 hash route(`#users`)이고 `payplay_os/apps/*`는 전부 골격(21파일)이다. 실제 배포체 미확인 | **OPEN** |
-| ODR-03 | **`PCS-106` 재고 Source Conflict 판정** | 본 Recovery에서 최신 TMS `db.js`에 `biz_inventory`·`biz_inventory_log` 참조 확인됨. 단 `create table` migration 부재 | **부분 해소 — §RECOVERY_REPORT 참조** |
+| ODR-01 | **기술 스택 확정** | 기존 `oc.payplay.kr` 계열의 실제 기술스택 확인 | **RESOLVED — Owner 제공 `nroad-ecosystem/payplay` 계열 source archive에서 `frontend/oc` React 19 + TypeScript + Vite 8 + React Router 8, `backend` NestJS 11 + TypeScript + Prisma 6.19 + PostgreSQL 확인. `frontend/oc/README.md`가 운영 도메인 `https://oc.payplay.kr`, Vercel CD를 직접 명시. `/users` path-route도 App.tsx에서 확인.** |
+| ODR-02 | **oc.payplay.kr 현재 배포 Repository 확정** | 실제 배포체/운영 Repo를 특정해 재사용 정밀도를 높여야 함 | **STRONG CONFIRMED CANDIDATE — Source archive 구조·GHCR `nroad-ecosystem` naming·배포 문서·최근 eformsign/계약/매장 기능 흔적이 `nroad-ecosystem/payplay`와 일치. 단 GitHub Connector가 private Repo current main SHA를 직접 읽지 못해 exact SHA equality만 미검증.** |
+| ODR-03 | **`PCS-106` 재고 Source Conflict 판정** | 최신 TMS `db.js`에 `biz_inventory`·`biz_inventory_log` 참조 확인됨. 단 `create table` migration 부재 | **부분 해소 — §RECOVERY_REPORT 참조. Current source에는 React inventory UI + Nest inventory module이 존재하지만, v2 Physical Schema/Migration 승계 여부는 별도 검증 전 HOLD 유지.** |
 | ODR-04 | **`biz_namecards` (명함관리) 처리** | Legacy 실기능이나 LEGACY RECOVERY QUEUE(REC-L01~L26) 어디에도 없음. Loss Risk | **OPEN** |
 | ODR-05 | **`biz_commission_grades` 처리** | `PMG-104` Formula 미확정 HOLD 상태이나 Legacy에 수수료 등급 자산이 실재 | **OPEN** |
-| ODR-06 | **고객 360 정책 충돌** | Legacy TMS 최신 커밋이 `고객 360 폐지 → 판매 상세로 통합`. 최신 Owner Source는 고객 360을 CONFIRMED 단일 Master로 규정 | **CONFLICT — Owner 확인 필요** |
+| ODR-06 | **고객 360 정책 충돌** | Legacy TMS 최신 커밋이 `고객 360 폐지 → 판매 상세로 통합`. 최신 Owner Source는 고객 360을 CONFIRMED 단일 Master로 규정 | **RESOLVED BY OWNER SOURCE PRIORITY — PST-301 Customer360 유지, Legacy 폐지안은 SUPERSEDED 참고자료** |
 
 ---
 
@@ -126,3 +126,6 @@ Approval threshold
 | 일자 | 내용 |
 |---|---|
 | 2026-09-05 | 최초 작성. Owner 지시서 + Sheet 07 v0.2 + Handoff v0.2 + OC Decision Register 반영 |
+| 2026-09-05 | ODR-01 기술스택을 업로드된 current PayPlay source evidence로 RESOLVED. ODR-06은 최신 Owner Source 우선 원칙에 따라 PST-301 유지로 정합. |
+| 2026-09-06 | Owner 제공 기존 OC 제작 스택(Frontend Next.js+TS+React / Backend NestJS+TS+PostgreSQL)과 별도 Next.js 자산 확인으로 ODR-01을 일시 OPEN/SOURCE CONFLICT로 재개방. |
+| 2026-09-06 | Owner 제공 `nroad-ecosystem/payplay` 계열 source archive의 `frontend/oc/README.md`, `package.json`, `App.tsx`, backend/deployment files를 직접 검증하여 ODR-01을 React/Vite + NestJS/Prisma/PostgreSQL로 재해결. ODR-02는 exact current main SHA verification만 남은 STRONG CONFIRMED CANDIDATE로 승격. |

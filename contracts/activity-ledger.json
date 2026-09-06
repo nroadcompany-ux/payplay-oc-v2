@@ -1,0 +1,27 @@
+{
+  "contractId": "PPOC2-CONTRACT-LEDGER-001",
+  "status": "CURRENT",
+  "sourceIds": ["PST-301", "PCS-101", "PCS-102", "PCS-103", "OC-R-018", "OC-R-019"],
+  "purpose": "Append-only activity/history trace layer between domain transactions and Customer360/TODAY projections.",
+  "appendOnly": true,
+  "minimumFields": [
+    "activityId",
+    "occurredAt",
+    "actorRef",
+    "customerRef",
+    "sourceDomain",
+    "sourceTransactionRef",
+    "activityType",
+    "summary",
+    "resultStatus"
+  ],
+  "optionalRefs": ["storeRef", "scheduleRef", "caseRef", "contractRef", "visitRef"],
+  "rules": {
+    "projectionMayMutateSourceTransaction": false,
+    "historyDeletionOnScheduleChangeCancel": false,
+    "vsResultFlowsToCustomer360ThroughLedger": true,
+    "duplicateCustomerMasterCreation": false
+  },
+  "physicalStorageBinding": "HOLD",
+  "newProductMeaningCreated": 0
+}

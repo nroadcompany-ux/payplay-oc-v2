@@ -1,0 +1,27 @@
+{
+  "contractId": "PPOC2-CONTRACT-PERM-001",
+  "status": "CURRENT",
+  "sourceIds": ["PSET-102", "OC-R-015"],
+  "roles": ["external_partner", "internal_employee", "internal_admin", "operator"],
+  "evaluationOrder": ["rowScope", "fieldVisibility", "actionPermission"],
+  "rowScope": {
+    "required": true,
+    "default": "deny",
+    "legacyAllowAllRlsReusable": false
+  },
+  "fieldVisibility": {
+    "required": true,
+    "sensitiveFieldsDefault": "hidden"
+  },
+  "actionPermission": {
+    "required": true,
+    "default": "deny",
+    "systemApiDbSecurityAdminEditable": false
+  },
+  "audit": {
+    "decisionTraceRequired": true,
+    "beforeAfterRequiredForSettingChange": true
+  },
+  "physicalIamBinding": "HOLD",
+  "newProductMeaningCreated": 0
+}

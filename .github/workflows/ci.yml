@@ -1,0 +1,49 @@
+name: OC CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches:
+      - 'exec/**'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.18.3
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.19.0
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Build
+        run: pnpm build
+
+      - name: Physical binding guard
+        shell: bash
+        run: |
+          if find backend/prisma -maxdepth 2 -type d -name migrations | grep -q .; then
+            echo 'Physical Prisma migration directory detected. HOLD violation.'
+            exit 1
+          fi
+          if grep -R --line-number -E 'LOGEN_(TOKEN|KEY)|PROVIDER_SECRET|DATABASE_URL=.+' . --exclude-dir=node_modules --exclude='*.md' --exclude-dir=.github; then
+            echo 'Potential provider/credential binding detected. Review required.'
+            exit 1
+          fi
+          echo 'No migration directory or obvious provider credential binding detected.'
