@@ -1,97 +1,128 @@
-# [OC] EVIDENCE / WORKING / Technology Stack Recovery — 기술스택 복원 [2026-09-06]
+# [OC] EVIDENCE / CURRENT / Technology Stack Recovery — 기술스택 복원 [2026-09-06]
 
 ## Verdict
 
-ODR-01 Technology Stack = **OPEN / SOURCE CONFLICT**.
+ODR-01 Technology Stack = **RESOLVED**.
 
-기존에 `React/Vite/React Router → NestJS → Prisma → PostgreSQL`로 RESOLVED 처리했으나, 이후 Owner가 제공한 기존 OC 제작 스택 정보와 GitHub의 별도 Next.js 계열 자산이 확인되어 재검증이 필요하다.
+2026-09-06 Owner가 제공한 `payplay-main (3).zip`을 직접 검증한 결과, 해당 소스는 `nroad-ecosystem/payplay` 통합 PayPlay 코드라인과 일치하는 강한 배포 Source Evidence를 포함한다.
 
-## Evidence A — uploaded current PayPlay source
+## Confirmed OC stack
 
-| Layer | Evidence |
+| Layer | Confirmed evidence |
 |---|---|
-| Workspace | pnpm workspace, Node >=20.19 |
-| OC Frontend candidate | `frontend/oc` = React 19.2.8 + Vite 8.2.1 + React Router 8.3.0 |
+| Workspace | `payplay`, pnpm workspace, Node >=20.19 |
+| OC Frontend | `frontend/oc` = React 19.2.8 + TypeScript + Vite 8.2.1 + React Router 8.3.0 |
 | State | Zustand 5 + TanStack React Query 5 |
 | HTTP | Axios |
-| Backend | NestJS 11 |
+| Forms | React Hook Form + Zod |
+| UI primitive | Radix UI |
+| Backend | `backend` = NestJS 11 + TypeScript |
 | ORM | Prisma 6.19 |
-| Database engine | PostgreSQL |
-| Deploy pattern | OC Vercel SPA / Backend Docker·Nginx·AWS-oriented files |
+| Database | PostgreSQL (`pg` driver 포함) |
+| OC deployment | Vercel, 운영 도메인 `https://oc.payplay.kr` |
+| API deployment | AWS + Nginx + Docker/GHCR, 운영 API `https://api.payplay.kr` |
 
-판정: **CURRENT SOURCE CANDIDATE**. 해당 소스가 실제 `oc.payplay.kr` 배포 Repo인지 확인되지 않았다.
+## Direct source evidence
 
-## Evidence B — Owner-provided existing OC stack statement
+### `frontend/oc/package.json`
 
-Owner 전달 정보:
+- `react` 19.2.8
+- `react-dom` 19.2.8
+- `vite` 8.2.1
+- `react-router` 8.3.0
+- `typescript`
+- `@tanstack/react-query`
+- `zustand`
+- `axios`
 
-- Backend: NestJS + TypeScript + PostgreSQL
-- Frontend: Next.js + TypeScript + React
+### `frontend/oc/README.md`
 
-판정: **OWNER-PROVIDED IMPLEMENTATION EVIDENCE**. 실제 Repository / deployment mapping 확인 필요.
+README가 OC를 다음과 같이 직접 설명한다.
 
-## Evidence C — GitHub `nroadcompany-ux/payplay`
+- `OC(구 TMS)의 Supabase/PWA 기능을 유지하면서 React로 전환한 사내 업무 시스템 프런트엔드`
+- 운영 도메인: `https://oc.payplay.kr`
+- 배포: GitHub Actions CD가 `frontend/oc`를 Vercel CLI 작업 디렉터리로 전달
+- Git push 자동 배포는 비활성화, 운영 배포는 GitHub Actions `CD`를 수동 실행
+- 기술 스택: React / TypeScript / Vite / React Router
+- 신규 직원 API는 NestJS 사용
 
-`package.json` 확인 결과:
+### `frontend/oc/src/app/App.tsx`
 
-- package name: `payplay-tms-next`
-- Next.js 16.2.9
-- React 19.2.4
-- TypeScript 5
-- Supabase client/SSR packages
-- App Router (`src/app/...`) 구조
+실제 path route 확인:
 
-Repo history에는 2026-06~07 PPOS/로그인/지출결의 작업 흔적이 있다.
+- `/dashboard`
+- `/notice/*`
+- `/consultation-requests`
+- `/customer-requests`
+- `/customer-on`
+- `/contract`
+- `/schedule`
+- `/salelog`
+- `/fulfillment`
+- `/inventory`
+- `/purchase-orders`
+- `/shipments`
+- `/products`
+- `/skus`
+- `/users`
+- `/security`
+- `/contract-signature-config`
+- `/my-page`
 
-중요:
+따라서 기존 Sheet Reference의 `oc.payplay.kr/users` path-route와도 일치한다.
 
-- 현재 tree에서 `/users` route가 확인되지 않음
-- NestJS backend가 이 Repo 내부에 확인되지 않음
-- `oc.payplay.kr` domain binding evidence가 확인되지 않음
+### `backend/package.json`
 
-판정: **NEXT.JS CANDIDATE / NOT YET DEPLOYMENT-PROVEN**.
+- `@nestjs/common` 11
+- `@nestjs/core` 11
+- `@nestjs/platform-express`
+- `@prisma/client` 6.19
+- `prisma` 6.19
+- `pg`
+- `@aws-sdk/client-s3`
 
-## Evidence D — legacy `payplay-tms`
+### Deployment evidence
 
-- Legacy TMS route는 hash-route 계열 evidence가 존재
-- 최신 Owner/Sheet reference는 `oc.payplay.kr/users` path-route 계열
+소스에 다음 파일이 존재한다.
 
-판정: **REFERENCE / NOT PROVEN CURRENT DEPLOYMENT SOURCE**.
+- `.github/workflows/cd.yml`
+- `deploy/production/compose.app.yml`
+- `deploy/production/nginx.conf.template`
+- `docs/deployment/architecture.md`
+- `docs/deployment/runbook.md`
 
-## Current decision boundary
+GHCR naming도 `nroad-ecosystem` 배포 계열과 직접 연결된다.
 
-아직 아래를 단정하지 않는다.
+## Next.js conflict resolution
 
-1. `oc.payplay.kr` 실제 Frontend가 React/Vite인지 Next.js인지
-2. `nroadcompany-ux/payplay`가 실제 배포 Repo인지
-3. NestJS backend의 실제 Repository와 deployment target
-4. PostgreSQL access layer가 Prisma인지, 별도 driver/ORM인지
-5. Vercel/AWS/기타 Production binding
+Owner가 전달받은 `Frontend = Next.js + TypeScript + React` 설명과 `nroadcompany-ux/payplay`의 `payplay-tms-next` 자산은 실제 존재한다.
+
+그러나 이번 Source Archive에서 **현재 OC package / route / README / deployment contract가 React/Vite로 직접 확인**되므로, Next.js 자산은 현재 `oc.payplay.kr` OC Frontend의 Canonical implementation stack으로 사용하지 않는다.
+
+Next.js는 별도 PayPlay 자산/시점/앱 계열 Reference로 유지한다.
+
+## ODR-02 boundary
+
+`nroad-ecosystem/payplay`와 이번 Archive의 동일성은 구조·배포 naming·최근 기능 흔적으로 매우 강하다.
+
+다만 GitHub Connector가 아직 `nroad-ecosystem` private Repo를 직접 읽지 못하므로 **exact current main SHA equality는 미검증**이다.
+
+따라서:
+
+- ODR-01 Technology Stack = **RESOLVED**
+- ODR-02 Deployment Repository = **STRONG CONFIRMED CANDIDATE / exact GitHub SHA verification pending**
 
 ## Execution impact
 
-기존 `payplay-oc-v2`의 현재 Shell / Figma Pilot / Logical Mock / Contract / Test 작업은 프레임워크 독립 의미가 크므로 유지 가능하다.
+`payplay-oc-v2`의 현재 React/Vite + NestJS 방향은 계속 진행 가능하다.
 
-단, ODR-01 재해결 전에는 다음을 확대하지 않는다.
+기존 HOLD는 그대로 유지한다.
 
-- framework-specific 대량 screen scaffold
-- production routing architecture
-- SSR/RSC-specific architecture
-- physical DB migration
-- provider/credential binding
-- production deployment binding
-
-## Required closure evidence
-
-ODR-01/02를 닫으려면 최소 하나의 deployment chain이 필요하다.
-
-`oc.payplay.kr → Hosting Project → Git Repository → package.json → route tree → API endpoint/backend repo`
-
-## Current Verdict
-
-- ODR-01 Technology Stack: **OPEN / SOURCE CONFLICT**
-- ODR-02 `oc.payplay.kr` Deployment Repository: **OPEN**
-- `nroadcompany-ux/payplay`: **Next.js candidate confirmed, deployment mapping unconfirmed**
-- uploaded `frontend/oc`: **React/Vite candidate confirmed, deployment mapping unconfirmed**
+- Shared Person / Merchant / IAM physical
+- Physical DB migration
+- Real provider / credentials
+- Production binding
+- PMG
+- PSET-106
 
 New Product Meaning Created = 0
