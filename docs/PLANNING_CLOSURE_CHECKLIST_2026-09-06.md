@@ -43,7 +43,7 @@ Claude Code 실제 개발 확대 전 기획 산출물·Prototype·Handoff가 닫
 - [x] Contract/eformsign recovery
 - [ ] Exact archive ↔ `nroad-ecosystem/payplay` main SHA identity verification
 
-## D. Remaining Detailed Contracts
+## D. Detailed Contracts
 
 - [x] Quote management/detail contract
 - [x] Vendor Master contract
@@ -58,13 +58,13 @@ Claude Code 실제 개발 확대 전 기획 산출물·Prototype·Handoff가 닫
 
 - [x] Prototype Flow Spec
 - [x] Prototype Screen Coverage Matrix
-- [ ] Figma representative clickable prototype
-- [ ] Common Shell interaction validation
-- [ ] Source / Return validation
-- [ ] Empty / Error / Permission-denied validation
+- [x] Figma representative clickable prototype P-01~P-07
+- [x] Common Shell structural/interaction validation — PASS Candidate
+- [x] Source / Return validation — PASS Candidate
+- [x] Empty / Error / Permission-denied validation — PASS Candidate
 - [ ] Human validation by Owner
-- [ ] Corrections reflected
-- [ ] Prototype Gate PASS
+- [ ] Owner corrections reflected
+- [ ] Prototype Gate Final PASS
 
 ## F. Developer Handoff Final Gate
 
@@ -72,9 +72,10 @@ Claude Code 실제 개발 확대 전 기획 산출물·Prototype·Handoff가 닫
 - [x] Canonical route map attached
 - [x] REUSE/MODIFY/NEW/HOLD matrix final
 - [x] AC trace final
-- [ ] Prototype links attached
+- [x] Prototype links attached
 - [x] HOLD list attached
 - [x] No unresolved P0 semantic conflict
+- [ ] Exact archive ↔ `nroad-ecosystem/payplay` main SHA identity evidence
 - [ ] Final Developer Handoff PASS
 
 ## Development Resume Rule
@@ -83,13 +84,12 @@ Claude Code 실제 개발 확대 전 기획 산출물·Prototype·Handoff가 닫
 
 ## Remaining Closure Items
 
-1. Exact archive ↔ `nroad-ecosystem/payplay` main SHA identity verification
-2. Figma representative clickable prototype P-01~P-07
-3. Common Shell / Source-Return / Empty-Error-Denied interaction validation
-4. Owner Human Validation
-5. Corrections reflected
-6. Prototype Gate PASS
-7. Prototype links attached to Developer Handoff
-8. Final Developer Handoff PASS
+1. Owner Human Validation of Figma P-01~P-07
+2. Owner-requested corrections reflected
+3. Prototype Gate Final PASS
+4. Exact archive ↔ `nroad-ecosystem/payplay` main SHA identity verification
+5. Final Developer Handoff PASS
+
+Current State: **READY FOR OWNER PROTOTYPE REVIEW / CLAUDE IMPLEMENTATION PAUSED**
 
 `New Product Meaning Created = 0`
