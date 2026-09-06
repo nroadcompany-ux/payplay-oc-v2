@@ -211,45 +211,38 @@ function TodayScreen() {
   const openSource = () => navigate(selected.sourcePath, { state: { returnTo: '/today', originLabel: 'TODAY' } satisfies NavigationState })
 
   return <section className="panel">
-    <div className="screen-head"><div><span className="eyebrow">{spec.id}</span><h1>{spec.title}</h1><p>{spec.summary}</p></div><span className="state-pill">{spec.state}</span></div>
-    <div className="card-grid">
-      {TODAY_STATES.map((state) => <article className="metric-card" key={state}>
-        <small>{state}</small>
-        <strong>{TODAY_ITEMS.filter((item) => item.state === state).length}</strong>
-        <p>{state === '완료' ? 'VS 결과는 Verified Complete 기준으로만 반영' : 'Source Domain으로 Drill-down'}</p>
-      </article>)}
+    <div className="screen-head"><div><span className="eyebrow">{spec.id}</span><h1>{spec.title}</h1><p>{spec.summary}</p></div></div>
+    <div className="metric-row">
+      {TODAY_STATES.map((state) => <div className="metric-item" key={state}>
+        <span>{state} {TODAY_ITEMS.filter((item) => item.state === state).length}</span>
+      </div>)}
     </div>
-    <div className="today-columns">
-      <div className="today-list-col">
+    <div className="plain-columns">
+      <div>
         <div className="section-label">내 업무</div>
-        <ul className="work-list">
+        <ul className="plain-list">
           {mine.map((item) => <li key={item.id}>
-            <button type="button" className={item.id === selectedId ? 'work-item active' : 'work-item'} onClick={() => setSelectedId(item.id)}>
-              <span className="work-state" data-state={item.state}>{item.state}</span>
-              <span className="work-title">{item.title}</span>
-              <span className="work-customer">{item.customer}</span>
-              {item.attention ? <span className="work-attention">주의</span> : null}
+            <button type="button" className={item.id === selectedId ? 'plain-row active' : 'plain-row'} onClick={() => setSelectedId(item.id)}>
+              <strong>{item.title}</strong>
+              <span>{item.customer} · {item.state}{item.attention ? ' · 주의' : ''}</span>
             </button>
           </li>)}
         </ul>
-        {attention.length ? <>
-          <div className="section-label">주의 필요</div>
-          <ul className="attention-list">{attention.map((item) => <li key={item.id}><strong>{item.title}</strong><span>{item.attention}</span></li>)}</ul>
-        </> : null}
+      </div>
+      <div>
+        <div className="section-label">주의 필요</div>
+        {attention.length ? <ul className="plain-list">{attention.map((item) => <li key={item.id} className="plain-row"><strong>{item.title}</strong><span>{item.attention}</span></li>)}</ul> : <p className="plain-empty">해당 없음</p>}
+      </div>
+      <div>
         <div className="section-label">최근 완료</div>
-        <ul className="recent-done-list">{recentDone.map((item) => <li key={item.id}><span>{item.title}</span><small>{item.customer}</small></li>)}</ul>
+        <ul className="plain-list">{recentDone.map((item) => <li key={item.id} className="plain-row"><strong>{item.title}</strong><span>{item.customer}</span></li>)}</ul>
       </div>
-      <div className="today-detail-col">
-        <div className="section-label">선택 업무</div>
-        <div className="work-detail">
-          <strong>{selected.title}</strong>
-          <div className="work-detail-row"><small>Customer</small><span>{selected.customer}</span></div>
-          <div className="work-detail-row"><small>Source</small><span>{selected.sourceLabel}</span></div>
-          <div className="work-detail-row"><small>State</small><span>{selected.state}</span></div>
-          {selected.attention ? <div className="work-detail-row"><small>주의</small><span>{selected.attention}</span></div> : null}
-          <button type="button" className="btn-primary" onClick={openSource}><strong>Source 열기</strong><span>{selected.sourceLabel}로 이동 · Projection은 원본을 수정하지 않음</span></button>
-        </div>
-      </div>
+    </div>
+    <div className="detail-panel">
+      <div className="section-label">선택 업무 · Customer/Source Context</div>
+      <strong className="detail-title">{selected.title}</strong>
+      <span className="detail-subline">고객: {selected.customer} · Source: {selected.sourceLabel} · 상태: {selected.state}{selected.attention ? ` · ${selected.attention}` : ''}</span>
+      <button type="button" className="btn-primary" onClick={openSource}><strong>Source 열기</strong><span>{selected.sourceLabel}로 이동 · Projection은 원본을 수정하지 않음</span></button>
     </div>
     {navState.returnTo ? <div className="return-strip"><span>{navState.originLabel ?? '이전 Context'}에서 진입</span><button className="btn-tertiary" onClick={() => navigate(navState.returnTo!)}>이전 Context로 돌아가기</button></div> : null}
     <div className="rule-grid"><article><small>Guard</small><strong>{spec.guard}</strong></article><article><small>Return</small><strong>{spec.returnRule}</strong></article></div>
@@ -289,38 +282,35 @@ function CustomerScreen() {
   const go = (target: string, originLabel: string) => navigate(target, { state: { returnTo: '/customers', originLabel } satisfies NavigationState })
 
   return <section className="panel">
-    <div className="customer-header">
-      <div><span className="eyebrow">{spec.id}</span><h1>{CUSTOMER_MOCK.name}</h1><p>{spec.summary}</p></div>
-      <span className="state-pill">{CUSTOMER_MOCK.status}</span>
+    <div className="screen-head"><div><span className="eyebrow">{spec.id}</span><h1>{spec.title}</h1><p>{spec.summary}</p></div></div>
+    <div className="detail-panel customer-identity">
+      <strong className="detail-title">{CUSTOMER_MOCK.name} · {CUSTOMER_MOCK.storeCode} · 담당 {CUSTOMER_MOCK.contact.split(' ')[0]} · Open Case {CUSTOMER_WORK.length}</strong>
+      <span className="detail-subline">상태 {CUSTOMER_MOCK.status} · {CUSTOMER_MOCK.tier} · {CUSTOMER_MOCK.region} · {CUSTOMER_MOCK.contractType}</span>
     </div>
-    <div className="store-context">
-      <article><small>Store Code</small><strong>{CUSTOMER_MOCK.storeCode}</strong></article>
-      <article><small>구분</small><strong>{CUSTOMER_MOCK.tier}</strong></article>
-      <article><small>담당자</small><strong>{CUSTOMER_MOCK.contact}</strong></article>
-      <article><small>지역</small><strong>{CUSTOMER_MOCK.region}</strong></article>
-      <article><small>계약 유형</small><strong>{CUSTOMER_MOCK.contractType}</strong></article>
-    </div>
-    <div className="action-zone">
-      <button className="btn-primary" onClick={() => go('/as-cases', '고객 360')}><strong>A/S 접수</strong><span>Customer360 Quick Action</span></button>
-      <button className="btn-secondary" onClick={() => go('/sales', '고객 360')}><strong>영업·견적 열기</strong><span>동일 Customer Context</span></button>
-    </div>
-    <div className="customer-columns">
+    <div className="plain-columns plain-columns-4">
       <div>
         <div className="section-label">진행 업무</div>
-        <ul className="work-list">{CUSTOMER_WORK.map((item) => <li key={item.id}>
-          <button type="button" className="work-item" onClick={() => go(item.path, '고객 360')}>
-            <span className="work-title">{item.label}</span>
-            <span className="work-customer">{item.state}</span>
+        <ul className="plain-list">{CUSTOMER_WORK.map((item) => <li key={item.id}>
+          <button type="button" className="plain-row" onClick={() => go(item.path, '고객 360')}>
+            <strong>{item.label}</strong>
+            <span>{item.state}</span>
           </button>
         </li>)}</ul>
-        {CUSTOMER_ATTENTION.length ? <>
-          <div className="section-label">Attention · Next Action</div>
-          <ul className="attention-list">{CUSTOMER_ATTENTION.map((item) => <li key={item.id}><strong>{item.label}</strong><span>{item.action}</span></li>)}</ul>
-        </> : null}
       </div>
       <div>
         <div className="section-label">최근 Activity</div>
-        <ul className="activity-list">{CUSTOMER_ACTIVITY.map((item) => <li key={item.id}><small>{item.time}</small><strong>{item.label}</strong><span>{item.note}</span></li>)}</ul>
+        <ul className="plain-list">{CUSTOMER_ACTIVITY.map((item) => <li key={item.id} className="plain-row"><strong>{item.time} {item.label}</strong><span>{item.note}</span></li>)}</ul>
+      </div>
+      <div>
+        <div className="section-label">Attention · Next Action</div>
+        {CUSTOMER_ATTENTION.length ? <ul className="plain-list">{CUSTOMER_ATTENTION.map((item) => <li key={item.id} className="plain-row"><strong>{item.label}</strong><span>{item.action}</span></li>)}</ul> : <p className="plain-empty">해당 없음</p>}
+      </div>
+      <div>
+        <div className="section-label">Quick Action</div>
+        <div className="plain-actions">
+          <button type="button" className="btn-primary" onClick={() => go('/as-cases', '고객 360')}><strong>A/S 접수</strong><span>Customer360 Quick Action</span></button>
+          <button type="button" className="btn-link" onClick={() => go('/sales', '고객 360')}>영업·견적 열기 →</button>
+        </div>
       </div>
     </div>
     {navState.returnTo ? <div className="return-strip"><span>{navState.originLabel ?? '이전 Context'}에서 진입</span><button className="btn-tertiary" onClick={() => navigate(navState.returnTo!)}>이전 Context로 돌아가기</button></div> : null}
@@ -346,7 +336,7 @@ function useNow() {
 function PrimarySidebar({ activeCategoryId }: { activeCategoryId: string }) {
   const navigate = useNavigate()
   return <aside className="sidebar-primary">
-    <strong className="brand-mark">PP</strong>
+    <span className="brand-mark" aria-hidden="true">P</span>
     <nav>
       {CATEGORY_MENU.map((category) => {
         const target = firstPathOf(category)
@@ -391,13 +381,10 @@ function HeaderShall({ category, screenTitle }: { category?: MenuCategory; scree
     <div className="header-search">
       <input type="search" placeholder="검색" aria-label="검색" />
     </div>
+    <div className="header-user">운영자</div>
     <div className="header-clock">
       <span>{dateFormatter.format(now)} ({weekdayFormatter.format(now)})</span>
       <strong>{timeFormatter.format(now)}</strong>
-    </div>
-    <div className="header-user">
-      <span className="user-role">운영자</span>
-      <span className="user-name">Mock User</span>
     </div>
   </header>
 }
