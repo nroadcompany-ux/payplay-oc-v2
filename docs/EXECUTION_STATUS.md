@@ -1,85 +1,82 @@
-# [OC] GATE / ACTIVE / Execution Status — 실행 상태 [2026-09-05]
+# [OC] GATE / ACTIVE / Execution Status — 실행 상태 [2026-09-06]
 
 ## Owner Decision
 
-- Decision: `EXECUTION GO`
 - Owner: 성재님
-- Accepted At: 2026-09-05 KST
-- Planning: CLOSED
-- Visual Validation: CLOSED
-- Execution: AUTHORIZED WITH HOLD
+- 2026-09-05: `EXECUTION GO`
+- 2026-09-06: **IMPLEMENTATION PAUSE UNTIL PLANNING DELIVERABLES + PROTOTYPE GATE COMPLETE**
+- Planning Documentation: ACTIVE / FINALIZATION
+- Prototype Validation: REQUIRED BEFORE MASS IMPLEMENTATION
+- Claude Code Application Development: PAUSED
+- Technology Recovery / Documentation / Test Design / Prototype Planning: ALLOWED
 
-## Technology Baseline
+## Current Technology Baseline
 
 - OC Frontend: React 19 + Vite 8 + React Router 8
 - Backend: NestJS 11
 - ORM: Prisma 6.19
 - DB Engine: PostgreSQL
-- `ODR-01`: RESOLVED by current PayPlay source evidence
+- `ODR-01`: RESOLVED by current `nroad-ecosystem/payplay` source archive evidence
+- `ODR-02`: STRONG CONFIRMED CANDIDATE; exact GitHub main SHA ↔ uploaded archive identity remains final verification item
 
-## Design Baseline
+## Planning Closure Gate
 
-- SSOT: `[PP-DS] BASELINE / CURRENT / PayPlay Product UI Design Guide · 페이플레이 제품 UI 디자인 가이드 [2026-09-05]`
-- Visual Language: v2 only
-- OC Variant: Clean & Dense
-- Core Grammar: White Canvas / Strong Typography / Fewer Containers / Local Semantic Color / Orange Primary Action
-- Orange400: `#F07200`
-- Orange400 + White Normal Text: prohibited
-- Official PayPlay DS tokens mapped into `frontend/oc/src/styles.css`
-- OC Figma P0/P1 representative families spread to VL2; Node QA performed on Sales and VS representative frames
+Claude Code의 신규/확장 구현은 아래 전부 완료 전 재개하지 않는다.
 
-## Sprint 0 — COMPLETE WITH HOLD
+1. Requirements / Scope final delta review
+2. Canonical IA / Menu / Route mapping final review
+3. User Story → Task → AC trace final review
+4. Quote contract complete
+5. Vendor Master contract complete
+6. Receivable contract complete
+7. CS→VS contract complete
+8. Inventory/Supply projection contract complete
+9. Teamplay/Permission contract complete
+10. Contract/eformsign preservation & Activity contract complete
+11. Error/Empty/Exception matrix complete
+12. Cross-domain Source / Return matrix complete
+13. Prototype Flow Specification complete
+14. Representative clickable Prototype complete
+15. Human Prototype Validation PASS
+16. Developer Handoff package final audit PASS
 
-- Menu Registry contract
-- Permission contract: Menu / Row Scope / Field Visibility / Action Permission
-- Activity Ledger append-only contract
-- TODAY / Queue Work Projection contract
-- React/Vite application scaffold
-- NestJS application shell
-- Prisma PostgreSQL provider declaration only; no physical model/migration
-- Foundation acceptance cases
+## Prototype Policy
 
-## Sprint 1 — CORE LOGICAL/MOCK ACTIVE
+전체 화면을 고해상도 Prototype으로 먼저 만들 필요는 없다.
 
-### Logical API
-- Customer360
-- TODAY
-- Sales
-- A/S + VS
-- Operations
-- Settings
+대표 업무 Flow는 반드시 클릭 가능한 상태로 검수한다.
 
-### Front ↔ Mock API
-- React reads Nest logical mock endpoints through TanStack Query
-- API failure preserves Static Contract and exposes connection failure state
+- 업무 홈 → TODAY → Source Detail → Return
+- 고객360 → A/S → VS → Verified Complete → Customer360
+- 신규유입 → 가망 → TM/방문 → 견적 → 계약
+- 계약 → 전자서명 → Activity → Customer360
+- 수발주 → 배송 → 재고 → TODAY/Customer360 projection
+- 팀플레이 → 권한 설정 → 메뉴/행/필드/액션 제한
+- Common Shell / 2단 Sidebar / HEADER SHALL / Search / Empty / Error
 
-### Interactive Source / Return
-- Home → TODAY
-- TODAY → A/S Source / Sales Source
-- Customer360 → A/S / Sales
-- A/S → VS Handoff
-- VS → Customer360 History context
-- Sales → Customer360
-- Operations → Customer360
-- Routed Source screens preserve explicit prior-context Return action
-- Navigation does not mutate Source state
+## Existing Implementation Boundary
 
-### Test Assets
-- Foundation contract cases: 10
-- Core mock cases: 12
-- Sprint 1 integration cases: 23
-- Interactive flow / visual / HOLD regression cases: 30
+이미 생성된 Sprint 0 / Sprint 1 Logical-Mock 자산은 삭제하지 않는다.
 
-### CI Gate
-- `.github/workflows/ci.yml`
-- Node 20.19 + pnpm 11.21
-- `pnpm typecheck`
-- `pnpm build`
-- Guard: Prisma migrations directory detection
-- Guard: obvious provider/credential binding pattern detection
-- Workflow execution evidence: pending first GitHub Actions run; creation itself does not equal CI PASS
+단, Owner의 2026-09-06 지시에 따라 **추가 구현 확대는 PAUSE**한다.
 
-## Still HOLD / Forbidden
+허용:
+- Recovery
+- Documentation
+- Contract refinement
+- Acceptance Test design
+- Prototype planning / Figma validation
+- Existing code audit
+
+금지:
+- 신규 화면 대량 구현
+- 신규 API/DB 실제 구현 확대
+- Physical DB migration
+- Provider / credential binding
+- Production deployment binding
+- HOLD 영역 구현
+
+## Preserved HOLD
 
 - `PMG-101~104`, `PMG-201~202`, `PMG-HOLD`
 - `PSET-106`
@@ -92,16 +89,14 @@
 - `PCS-190` Cleaner / Recovery / Format real endpoint
 - `PMG-104` compensation formula
 
-## Gate
+## Current Gate
 
-- Planning: CLOSED
-- Visual Validation: CLOSED
-- Execution: AUTHORIZED WITH HOLD
 - Technology Stack: RESOLVED
-- Visual Language v2: CURRENT
-- Sprint 0: COMPLETE WITH HOLD
-- Sprint 1 Core Logical/Mock: IN PROGRESS
-- Physical Binding / DB Migration / Production: HOLD
-- CI: WORKFLOW CREATED / FIRST RUN NOT YET OBSERVED
+- Current Source Recovery: ACTIVE / ADVANCED
+- Planning Documentation: FINALIZATION IN PROGRESS
+- Prototype: REQUIRED / NOT YET CLOSED
+- Developer Handoff Final Audit: NOT YET CLOSED
+- Claude Code Development Expansion: **PAUSED BY OWNER**
+- Physical / Provider / Production: HOLD
 
 `New Product Meaning Created = 0`
